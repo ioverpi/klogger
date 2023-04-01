@@ -1,15 +1,36 @@
 const stateButton = document.querySelector("#stateButton");
+const categorySelector = document.querySelector("#category");
+const messageField = document.querySelector("#message");
 let currDbName = null;
 let currDb = null;
+let nextState = null;
+const START = "START";
+const END = "END";
 
 function init(){
     currDbName = localStorage.getItem("currDbName");
     if(currDbName) openDatabase(currDbName);
 
 
-    stateButton.addEventListener("click", function(){
-        alert("hi");
-    }, false);
+    stateButton.addEventListener("click", handleStateChange);
+}
+
+function handleStateChange(){
+    const objectStore = currDb.transaction("events").objectStore("events");
+    const cursorOpen = objectStore.openCursor(null, "prev");
+    cursorOpen.addEventListener("error", function(){
+        console.log("Error occured in getting the last entry.");
+    });
+    cursorOpen.addEventListener("success", function(){
+        const cursor = this.result;
+        if(cursor){
+            if(cursor.value.type == START) nextState = END;
+            else nextState = START;
+        }else{
+            nextState = START;
+        }
+        addEvent(nextState, new Date(), parseInt(categorySelector.value), messageField.value);
+    });
 }
 
 function openDatabase(dbName){
@@ -33,7 +54,8 @@ function openDatabase(dbName){
 
     request.addEventListener("success", function(event){
         currDb = this.result;
-        addEvent("START", new Date(), 0, "Finally started research.");
+        console.log("Loaded up database.");
+        //addEvent("START", new Date(), 0, "Finally started research.");
     });
 }
 
