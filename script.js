@@ -13,6 +13,7 @@ function init(){
 }
 
 function openDatabase(dbName){
+    if(currDb) currDb.close();
     const request = indexedDB.open(dbName);
     request.addEventListener("error", function(event){
         console.log("Error occurred when opening database.")
@@ -47,6 +48,14 @@ function addEvent(type, date, category, message){
     });
     const objectStore = transaction.objectStore("events");
     const request = objectStore.add(obj);
+}
+
+let results = null;
+function getEvents(){
+    const objectStore = currDb.transaction("events").objectStore("events");
+    objectStore.getAll().addEventListener("success", function(event){
+        results =  this.result;
+    });
 }
 
 window.addEventListener("load", init, false);
